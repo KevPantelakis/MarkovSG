@@ -1,6 +1,6 @@
 # MarkovSG
 Marcovian chain random senctence generator
-#Code sample
+# Code sample
 ```python
 import MarkovSG
 
