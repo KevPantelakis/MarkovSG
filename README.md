@@ -5,7 +5,7 @@ Marcovian chain random senctence generator
 import MarkovSG
 
 # Read text as one giant string
-with open("/path/to/my/sample_text.txt") as f:
+with open("/path/to/sample_text.txt") as f:
     text = f.read()
 
 # instanciate the sentence generator
