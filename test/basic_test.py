@@ -3,7 +3,7 @@ import re
 import MarkovSG
 with open("../sample_texts/undersea.txt") as f:
     undersea = f.read()
-    markov_gen = MarkovSG.MarkovGenerator(undersea)
+    markov_gen = MarkovSG.MarkovChainGenerator(undersea)
 
 
 class MarkovSGTest(unittest.TestCase):
@@ -21,7 +21,7 @@ class MarkovSGTest(unittest.TestCase):
 
     def test_seed_text_too_small(self):
         seed_text = "I'm a small text. This is one sentence."
-        generator = MarkovSG.MarkovGenerator(seed_text)
+        generator = MarkovSG.MarkovChainGenerator(seed_text)
         sentence = generator.get_sentence()
         assert(sentence is None)
 

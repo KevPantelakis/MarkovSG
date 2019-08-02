@@ -1,1 +1,1 @@
-from .MarkovGenerator import MarkovGenerator
+from .MarkovChainGenerator import MarkovChainGenerator
