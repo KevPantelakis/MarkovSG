@@ -35,13 +35,32 @@ class MarkovChainGenerator(object):
             raise Exception('Must provide a name list(as a string txt file) to train the generator')
         self.markov_name_graph = self.__get_trained_markov(names)
 
+    def __train_for_words2(self, words, substr_size):
+        if words is None:
+            raise Exception('Must provide a words list(as a string txt file(all lower) to train the generator')
+
+        ## How to specifiy a string size... ideas:
+        #
+        words_tokens = words.split("\n")
+        markov_graph = defaultdict(lambda: defaultdict(int))
+        for word in words_tokens:
+            last_chars = word[0:substr_size]
+            for i in range(substr_size,len(word),substr_size):
+                chars = word[i:i+substr_size]
+                markov_graph[last_chars][chars] += 1
+                last_chars = chars
+        self.markov_word_graph = markov_graph
+
     def train_for_words(self, words):
         if words is None:
             raise Exception('Must provide a words list(as a string txt file(all lower) to train the generator')
         self.markov_word_graph = self.__get_trained_markov(words)
 
-    def __walk_graph(self, graph, distance=10, start_node=None):
-        if distance <= 0:
+    def walk_graph(self, graph, distance=10, start_node=None):
+        if graph is None:
+            raise Exception('No graph to walk')
+
+        if distance <= 0 or len(graph[start_node].values()) == 0:
             return []
 
         if not start_node:
@@ -50,22 +69,23 @@ class MarkovChainGenerator(object):
         weights = np.array(list(graph[start_node].values()), dtype=np.float64)
         weights /= weights.sum()
         choices = list(graph[start_node].keys())
-        chosen_word = np.random.choice(choices, None, p=weights)
-        return [chosen_word] + self.__walk_graph(graph, distance=distance - 1, start_node=chosen_word)
+        chosen_node = np.random.choice(choices, None, p=weights)
+        return [chosen_node] + self.walk_graph(graph, distance=distance - 1, start_node=chosen_node)
 
     def get_sentence(self, word_count=None):
         if self.markov_sentence_graph is None:
             raise Exception('The generator must be trained for sentences before generating them')
 
-        if word_count is None:
+        if word_count is None or word_count <= 0:
             word_count = np.random.randint(10, 20)
 
         if len(self.markov_sentence_graph) <= word_count:
             return None
+
         begin_node = np.random.choice(self.first_words)
         sentence_start = begin_node[0].upper() + begin_node[1:]
-        sentence = sentence_start + ' ' + ' '.join(self.__walk_graph(self.markov_sentence_graph, distance=word_count - 1,
-                                                                     start_node=begin_node))
+        sentence = sentence_start + ' ' + ' '.join(self.walk_graph(self.markov_sentence_graph, distance=word_count - 1,
+                                                                   start_node=begin_node))
         sentence = sentence + '.\n'
         return sentence
 
@@ -78,15 +98,20 @@ class MarkovChainGenerator(object):
     def get_word(self,word_length=None):
         if self.markov_word_graph is None:
             raise Exception('The generator must be trained for words before generating them')
-        name = self.__get_word(self.markov_word_graph, word_length, chr(random.randint(97, 122)))
-        return name
+        word = self.__get_word(graph=self.markov_word_graph, length=word_length, begin_node=chr(random.randint(97,122)))
+        return word
 
     def __get_word(self, graph, length, begin_node):
         if len(graph) <= length:
             raise Exception('Not enough training data')
+
         if length is None or length <= 0:
             length = np.random.randint(2, 15)
-        word = begin_node + ''.join(self.__walk_graph(graph=graph, distance=length - 1, start_node=begin_node))
+
+        if not begin_node:
+            begin_node = np.random.choice(list(graph.keys()))
+
+        word = begin_node + ''.join(self.walk_graph(graph=graph, distance=length - 1, start_node=begin_node))
         return word
 
     def __get_text_tokens(self, seed_text):
@@ -102,7 +127,7 @@ class MarkovChainGenerator(object):
                         first_words.append(words[0].lower())
         self.first_words = first_words
 
-    def __get_trained_markov(self, words):
+    def __get_trained_markov(self, words, substring_size=1):
         words_tokens = words.split("\n")
         markov_graph = defaultdict(lambda: defaultdict(int))
         for word in words_tokens:
