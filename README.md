@@ -1,21 +1,41 @@
 # MarkovSG
-Marcovian chain random senctence generator
+Marcovian chain random senctences, words and names generator
 # Code sample
 ```python
 import MarkovSG
 
 # Read text as one giant string
-with open("/path/to/sample_text.txt") as f:
-    text = f.read()
+import MarkovSG
+import random
 
-# instanciate the sentence generator
-generator = MarkovSG.MarkovGenerator(text)
+sentence_file = open("sample_texts/undersea.txt")
+sentences = sentence_file.read()
+sentence_file.close()
 
-# Print randomly-generated sentences
-for i in range(0, 7):
-    print(generator.get_sentence())
+name_file = open("Dictionaries/names.txt")
+names = name_file.read()
+name_file.close()
 
-# Print randomly-generated 15 words sentences 
-for i in range(0, 3):
-    print(generator.get_sentence(15))
+word_file = open("Dictionaries/words.txt")
+words = word_file.read()
+word_file.close()
+
+gen = MarkovSG.MarkovChainGenerator(text=sentences, names=names, words=words)
+######## OR
+# gen = MarkovSG.MarkovChainGenerator()
+# gen.train_for_sentence(sentences)
+# gen.train_for_words(words)
+# gen.train_for_names(names)
+
+print("Names: \n")
+for i in range(0, 5):
+    print(gen.get_name(name_length=random.randint(3, 9)))
+
+print("\nWords: \n")
+for i in range(0, 50):
+    print(gen.get_word(word_length=random.randint(4, 10)))
+
+print("\nSentences: \n")
+for i in range(0, 5):
+    print(gen.get_sentence(word_count=random.randint(7, 15)))
 ```
