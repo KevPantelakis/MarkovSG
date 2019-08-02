@@ -40,7 +40,7 @@ class MarkovChainGenerator(object):
             raise Exception('Must provide a words list(as a string txt file(all lower) to train the generator')
         self.markov_word_graph = self.__get_trained_markov(words)
 
-    def walk_graph(self, graph, distance=10, start_node=None):
+    def __walk_graph(self, graph, distance=10, start_node=None):
         if distance <= 0:
             return []
 
@@ -51,7 +51,7 @@ class MarkovChainGenerator(object):
         weights /= weights.sum()
         choices = list(graph[start_node].keys())
         chosen_word = np.random.choice(choices, None, p=weights)
-        return [chosen_word] + self.walk_graph(graph, distance=distance - 1, start_node=chosen_word)
+        return [chosen_word] + self.__walk_graph(graph, distance=distance - 1, start_node=chosen_word)
 
     def get_sentence(self, word_count=None):
         if self.markov_sentence_graph is None:
@@ -64,8 +64,8 @@ class MarkovChainGenerator(object):
             return None
         begin_node = np.random.choice(self.first_words)
         sentence_start = begin_node[0].upper() + begin_node[1:]
-        sentence = sentence_start + ' ' + ' '.join(self.walk_graph(self.markov_sentence_graph, distance=word_count-1,
-                                                                   start_node=begin_node))
+        sentence = sentence_start + ' ' + ' '.join(self.__walk_graph(self.markov_sentence_graph, distance=word_count - 1,
+                                                                     start_node=begin_node))
         sentence = sentence + '.\n'
         return sentence
 
@@ -86,7 +86,7 @@ class MarkovChainGenerator(object):
             raise Exception('Not enough training data')
         if length is None or length <= 0:
             length = np.random.randint(2, 15)
-        word = begin_node + ''.join(self.walk_graph(graph=graph, distance=length - 1, start_node=begin_node))
+        word = begin_node + ''.join(self.__walk_graph(graph=graph, distance=length - 1, start_node=begin_node))
         return word
 
     def __get_text_tokens(self, seed_text):
